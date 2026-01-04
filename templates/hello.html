@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Scraper</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .job { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <form id="searchForm">
+        <input name="term" id="term" placeholder="python, javascript, java" required>
+        <button type="submit">검색</button>
+    </form>
+
+    <hr>
+    
+    <div id="results"></div>
+
+    <script>
+
+    const form = document.getElementById("searchForm");
+    const input = document.getElementById("term");
+    const resultsDiv = document.getElementById("results");
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const term = input.value.trim();
+        if(!term) return;
+        
+        const formData = new FormData();
+        formData.append("term", term);
+
+        const response = await fetch("/search", {
+            method: "POST",
+            body: formData
+        });
+
+        const jobs = await response.json();
+
+        resultsDiv.innerHTML = "";
+
+        if (jobs.length === 0) {
+            resultsDiv.innerHTML = "<p>No jobs found.</p>";
+            return;
+        }
+
+        jobs.forEach((job) => {
+            const div = document.createElement("div");
+            div.className = "job";
+            div.innerHTML = `
+                <strong>${job.title}</strong><br>
+                ${job.company} — <em>${job.source}</em><br>
+                <a href="${job.link}" target="_blank">View Job</a>
+                ${job.description ? `<p>${job.description}</p>` : ""}
+            `;
+            resultsDiv.appendChild(div);
+        });
+    });
+    </script>
+</body>
+</html>
